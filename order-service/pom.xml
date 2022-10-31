@@ -25,15 +25,26 @@
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
         </dependency>
-        <!--eureka客户端依赖-->
+        <!-- nacos客户端依赖包 -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
         <!--druid数据库连接池-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- nacos配置管理依赖 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <!-- 引入feign统一api -->
+        <dependency>
+            <groupId>com.awen</groupId>
+            <artifactId>feign-api</artifactId>
+            <version>1.0</version>
         </dependency>
     </dependencies>
     <build>

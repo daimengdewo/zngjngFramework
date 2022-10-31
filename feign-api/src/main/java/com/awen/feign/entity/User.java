@@ -1,4 +1,4 @@
-package com.awen.order.entity;
+package com.awen.feign.entity;
 
 import lombok.Data;
 

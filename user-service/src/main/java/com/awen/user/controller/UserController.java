@@ -1,5 +1,6 @@
 package com.awen.user.controller;
 
+import com.awen.user.config.PatternProperties;
 import com.awen.user.entity.User;
 import com.awen.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,14 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PatternProperties properties;
+
+    @GetMapping("test")
+    public PatternProperties test() {
+        return properties;
+    }
 
     /**
      * 路径： /user/110

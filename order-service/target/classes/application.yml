@@ -7,9 +7,6 @@ spring:
       username: root
       password: 123456
       driver-class-name: com.mysql.cj.jdbc.Driver
-  application:
-    #order服务的服务名称
-    name: orderservice
 mybatis:
   type-aliases-package: com.awen.user.entity
   configuration:
@@ -19,17 +16,26 @@ logging:
     com.awen: debug
   pattern:
     dateformat: MM-dd HH:mm:ss:SSS
-eureka:
-  client:
-    service-url:
-      #eureka地址信息
-      defaultZone: http://127.0.0.1:8761/eureka
 #配置负载均衡规则
 userservice:
   ribbon:
-    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.ZoneAvoidanceRule
+    NFLoadBalancerRuleClassName: com.alibaba.cloud.nacos.ribbon.NacosRule
 #饥饿加载
 ribbon:
   eager-load:
     enabled: true #开启饥饿加载
     clients: userservice #指定服务名称
+#Feign配置
+feign:
+  client:
+    config:
+      #配置指定服务的日志级别
+      userservice:
+        loggerLevel: NONE
+  httpclient:
+    #是否支持httpClient
+    enabled: true
+    #最大连接数
+    max-connections: 200
+    #单个路径最大连接数
+    max-connections-per-route: 50

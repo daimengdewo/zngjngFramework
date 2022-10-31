@@ -1,5 +1,6 @@
 package com.awen.order.entity;
 
+import com.awen.feign.entity.User;
 import lombok.Data;
 
 @Data
