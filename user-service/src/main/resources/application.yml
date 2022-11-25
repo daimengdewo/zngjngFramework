@@ -3,9 +3,9 @@ server:
 spring:
   datasource:
     druid:
-      url: jdbc:mysql://localhost:3306/cloud_user?useSSL=false
+      url: jdbc:mysql://192.168.31.211:3307/cloud_user?useSSL=false
       username: root
-      password: 123456
+      password: LDaf-2022
       driver-class-name: com.mysql.cj.jdbc.Driver
 mybatis:
   type-aliases-package: com.awen.user.entity
