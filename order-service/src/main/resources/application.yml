@@ -8,7 +8,7 @@ spring:
       password: LDaf-2022
       driver-class-name: com.mysql.cj.jdbc.Driver
 mybatis:
-  type-aliases-package: com.awen.user.entity
+  type-aliases-package: com.awen.order.entity
   configuration:
     map-underscore-to-camel-case: true
 logging:

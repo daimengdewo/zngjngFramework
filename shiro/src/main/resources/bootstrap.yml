@@ -1,7 +1,7 @@
 spring:
   application:
-    #user服务的服务名称
-    name: userservice
+    #gateway服务的服务名称
+    name: shiro
   profiles:
     #环境
     active: dev
