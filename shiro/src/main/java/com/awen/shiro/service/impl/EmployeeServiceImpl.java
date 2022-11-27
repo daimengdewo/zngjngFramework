@@ -3,18 +3,18 @@ package com.awen.shiro.service.impl;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
 import cn.hutool.core.util.RandomUtil;
-import com.awen.shiro.common.Code;
-import com.awen.shiro.common.Message;
-import com.awen.shiro.entity.Employee;
-import com.awen.shiro.entity.JwtUser;
+import cn.hutool.crypto.SecureUtil;
+import com.awen.feign.common.Code;
+import com.awen.feign.common.Message;
+import com.awen.feign.entity.Shiro;
+import com.awen.shiro.config.shiro.JwtUtil;
+import com.awen.shiro.entity.*;
 import com.awen.shiro.exception.BusinessException;
-import com.awen.shiro.mapper.EmployeeMapper;
+import com.awen.shiro.mapper.*;
 import com.awen.shiro.service.EmployeeService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.crypto.hash.SimpleHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +33,14 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
 
     @Autowired
     private EmployeeMapper employeeMapper;
-
+    @Autowired
+    private PermissionMapper permissionMapper;
+    @Autowired
+    private EmployeeRoleMapper employeeRoleMapper;
+    @Autowired
+    private RoleMapper roleMapper;
+    @Autowired
+    private RolePermissionMapper rolePermissionMapper;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
@@ -52,8 +56,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
      * 5.返回结果
      */
     @Override
-    @Async
-    public CompletableFuture<Integer> create(Employee employee) {
+    public Integer createEmployee(Employee employee) {
         //重复信息判断
         LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Employee::getUsername, employee.getUsername())
@@ -63,15 +66,73 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         if (count > 0) {
             throw new BusinessException(Code.SAVE_ERR, Message.TOO_MUCH_EMP_ERR_MSG);
         }
-        JwtUser jwtUser = (JwtUser) SecurityUtils.getSubject().getPrincipal();
         //密码进行md5加盐处理
-        SimpleHash simpleHash = new SimpleHash("md5", employee.getPassword(), salt, 2);
-        //构建对象
-        employee.setPassword(simpleHash.toString());
-        employee.setCreateUser(jwtUser.getUid());
-        employee.setUpdateUser(jwtUser.getUid());
-        //写入数据库并返回结果
-        return CompletableFuture.completedFuture(employeeMapper.insert(employee));
+        String pass = SecureUtil.md5(employee.getPassword() + salt);
+        //员工对象
+        employee.setPassword(pass);
+        int empFlag = employeeMapper.insert(employee);
+        //分配角色
+        EmployeeRole employeeRole = new EmployeeRole();
+        employeeRole.setEmp_id(employee.getId());
+        employeeRole.setRole_id(employee.getRole_id());
+        //必须全部插入成功才返回1
+        int empRoleFlag = employeeRoleMapper.insert(employeeRole);
+        if (empRoleFlag > 0 && empFlag > 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * 新增角色并分配权限
+     */
+    @Override
+    public Integer addRoles(Role role) {
+        //去重条件
+        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Role::getName, role.getName());
+        //查询重复角色
+        Integer count = roleMapper.selectCount(wrapper);
+        if (count > 0) {
+            return 0;
+        }
+        //查询是否存在该权限
+        LambdaQueryWrapper<Permission> P_wrapper = new LambdaQueryWrapper<>();
+        P_wrapper.eq(Permission::getId, role.getPermission_id());
+        Integer P_count = permissionMapper.selectCount(P_wrapper);
+        if (P_count <= 0) {
+            return 0;
+        }
+        //插入角色
+        int roleFlag = roleMapper.insert(role);
+        //角色权限映射关系
+        RolePermission rolePermission = new RolePermission();
+        rolePermission.setRole_id(role.getId());
+        rolePermission.setPermission_id(role.getPermission_id());
+        int rolePermissionFlag = rolePermissionMapper.insert(rolePermission);
+        //必须全部插入成功才返回1
+        if (roleFlag > 0 && rolePermissionFlag > 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * 新增权限
+     */
+    @Override
+    public Integer addPermission(Permission permission) {
+        //去重
+        LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Permission::getInfo, permission.getInfo());
+        //查询重复权限
+        Integer count = permissionMapper.selectCount(wrapper);
+        if (count > 0) {
+            return 0;
+        }
+        return permissionMapper.insert(permission);
     }
 
     /**
@@ -183,4 +244,36 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         }
         return flag;
     }
+
+    /**
+     * 校验器
+     */
+    @Override
+    @Async
+    public CompletableFuture<Shiro> Check(String token, String roles) {
+        Shiro shiro = new Shiro();
+        boolean isCheck = JwtUtil.verifyTokenOfUser(token);
+        JwtUser info = JwtUtil.getInfo(token);
+        //判断token是否有效
+        if (info != null && isCheck) {
+            //构造shiro对象
+            shiro.setIsCheck(true);
+            shiro.setUsername(info.getUsername());
+            shiro.setRoles(info.getRoles());
+            shiro.setUid(info.getUid());
+        } else {
+            shiro.setIsCheck(false);
+        }
+        //权限校验
+        if (roles != null && shiro.getRoles() != null) {
+            Set<String> roleSet = new HashSet<>(shiro.getRoles());
+            Boolean contains = roleSet.contains(roles);
+            shiro.setIsRoleCheck(contains);
+        } else {
+            shiro.setIsRoleCheck(false);
+        }
+        return CompletableFuture.completedFuture(shiro);
+    }
+
+
 }

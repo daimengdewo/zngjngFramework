@@ -1,4 +1,4 @@
-package com.awen.user.config;
+package com.awen.shiro.config;
 
 import com.awen.feign.interceptor.ProjectInterceptor;
 import lombok.extern.slf4j.Slf4j;

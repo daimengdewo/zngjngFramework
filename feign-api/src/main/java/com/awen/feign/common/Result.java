@@ -1,4 +1,4 @@
-package com.awen.shiro.common;
+package com.awen.feign.common;
 
 import lombok.Data;
 

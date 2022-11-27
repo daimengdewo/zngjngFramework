@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient("shiro")
 public interface ShiroClient {
-    @GetMapping("/employee/check/{token}")
-    Shiro check(@PathVariable("token") String permission);
+    @GetMapping("/employee/check/{token}/{roles}")
+    Shiro check(@PathVariable("token") String token, @PathVariable("roles") String roles);
 }

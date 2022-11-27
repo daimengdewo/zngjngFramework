@@ -6,7 +6,8 @@ import java.util.List;
 
 @Data
 public class Shiro {
-    private String isCheck;
+    private Boolean isCheck;
+    private Boolean isRoleCheck;
     private String username;
     private List<String> roles;
     private Long uid;

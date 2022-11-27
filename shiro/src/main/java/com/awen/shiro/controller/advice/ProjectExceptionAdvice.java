@@ -1,17 +1,17 @@
 package com.awen.shiro.controller.advice;
 
-import com.awen.shiro.common.Code;
-import com.awen.shiro.common.Message;
-import com.awen.shiro.common.Result;
+import com.awen.feign.common.Code;
+import com.awen.feign.common.Message;
+import com.awen.feign.common.Result;
 import com.awen.shiro.exception.BusinessException;
 import com.awen.shiro.exception.SystemException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+
+import java.sql.SQLSyntaxErrorException;
 
 @Slf4j
 @RestControllerAdvice
@@ -29,22 +29,6 @@ public class ProjectExceptionAdvice {
         return new Result(exception.getCode(), exception.getMessage());
     }
 
-    // 身份验证错误
-    @ExceptionHandler(AuthenticationException.class)
-    public Result authenticationExceptionHandler(AuthenticationException e) {
-        log.error("AuthenticationException");
-        log.error(e.getLocalizedMessage());
-        return new Result(Code.GET_USER_ERR, null, Message.USER_ERR_MSG);
-    }
-
-    //权限验证错误
-    @ExceptionHandler(UnauthorizedException.class)
-    public Result unauthorizedExceptionHandler(UnauthorizedException e) {
-        log.error("unauthorizedExceptionHandler");
-        log.error(e.getLocalizedMessage());
-        return new Result(Code.GET_AUTHORIZED_ERR, null, Message.AUTHORIZED_ERR_MSG);
-    }
-
     //对应路径不存在
     @ExceptionHandler(NoHandlerFoundException.class)
     public Result noHandlerFoundExceptionHandler(NoHandlerFoundException e) {
@@ -59,6 +43,14 @@ public class ProjectExceptionAdvice {
         log.error("notValidException");
         log.error(e.getLocalizedMessage());
         return new Result(Code.SYSTEM_VALID_ERR, null, Message.SYSTEM_VALID_ERR_MSG);
+    }
+
+    //数据库查询失败
+    @ExceptionHandler(SQLSyntaxErrorException.class)
+    public Result notSQLSyntaxErrorExceptionHandler(SQLSyntaxErrorException e) {
+        log.error("SQLSyntaxErrorException");
+        log.error(e.getLocalizedMessage());
+        return new Result(Code.GET_ERR, null, Message.GET_ERR_MSG);
     }
 
     //通用异常

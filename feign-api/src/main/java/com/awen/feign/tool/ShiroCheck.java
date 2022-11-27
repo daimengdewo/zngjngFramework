@@ -1,4 +1,4 @@
-package com.awen.user.tool;
+package com.awen.feign.tool;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

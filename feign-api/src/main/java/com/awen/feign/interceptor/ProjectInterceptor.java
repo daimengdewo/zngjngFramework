@@ -1,8 +1,8 @@
-package com.awen.user.controller.interceptor;
+package com.awen.feign.interceptor;
 
 import com.awen.feign.entity.Shiro;
-import com.awen.user.tool.ShiroCheck;
-import com.awen.user.tool.ShiroTool;
+import com.awen.feign.tool.ShiroCheck;
+import com.awen.feign.tool.ShiroTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -24,21 +24,23 @@ public class ProjectInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (HandlerMethod.class.equals(handler.getClass())) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
-            //获取token
-            String token = request.getHeader("Authorization");
-            token = token.replace("Bearer ", "");
             //反射获取注解
             ShiroCheck shiroCheck = handlerMethod.getMethod().getAnnotation(ShiroCheck.class);
             if (shiroCheck != null) {
-                Shiro result = shiroTool.check(token);
+                //获取token
+                String token = request.getHeader("Authorization").replace("Bearer ", "");
+                //校验
+                Shiro result = shiroTool.check(token, shiroCheck.roles());
                 //判断权限检查结果
-                if (!result.getIsCheck().equals("ture")) {
+                if (!result.getIsCheck()) {
                     request.getRequestDispatcher("/user/tokenError").forward(request, response);
-                    return false;
+                    return result.getIsCheck();
                 }
-                //获取权限列表
-                System.out.println(result.getRoles());
-                System.out.println(result);
+                //根据权限列表判断
+                if (!result.getIsRoleCheck()) {
+                    request.getRequestDispatcher("/user/rolesError").forward(request, response);
+                    return result.getIsRoleCheck();
+                }
             }
         }
         return true;

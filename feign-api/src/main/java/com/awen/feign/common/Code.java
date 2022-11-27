@@ -1,4 +1,4 @@
-package com.awen.user.common;
+package com.awen.feign.common;
 
 /**
  * 响应代码
@@ -26,7 +26,9 @@ public class Code {
      * 登录成功
      */
     public static final Integer GET_LOGIN_OK = 20141;
-
+    /**
+     * 新增失败
+     */
     public static final Integer SAVE_ERR = 20010;
     public static final Integer DELETE_ERR = 20020;
     public static final Integer UPDATE_ERR = 20030;

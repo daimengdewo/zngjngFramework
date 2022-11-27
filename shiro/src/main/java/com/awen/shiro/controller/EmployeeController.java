@@ -1,18 +1,19 @@
 package com.awen.shiro.controller;
 
-import com.awen.shiro.common.Code;
-import com.awen.shiro.common.Message;
-import com.awen.shiro.common.Result;
+import cn.hutool.crypto.SecureUtil;
+import com.awen.feign.common.Code;
+import com.awen.feign.common.Message;
+import com.awen.feign.common.Result;
+import com.awen.feign.entity.Shiro;
 import com.awen.shiro.config.shiro.JwtUtil;
 import com.awen.shiro.entity.Employee;
 import com.awen.shiro.entity.JwtUser;
-import com.awen.shiro.entity.Shiro;
+import com.awen.shiro.entity.Permission;
+import com.awen.shiro.entity.Role;
 import com.awen.shiro.service.EmployeeService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.crypto.hash.SimpleHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
@@ -58,9 +59,7 @@ public class EmployeeController {
             LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
             //创建wrapper对象
             wrapper.eq(Employee::getUsername, map.get("username").toString())
-                    .eq(Employee::getPassword, new SimpleHash(
-                            "md5", map.get("password").toString(), salt, 2).toString());
-
+                    .eq(Employee::getPassword, SecureUtil.md5(map.get("password").toString() + salt));
             //构造jwt对象
             CompletableFuture<JwtUser> jwtUser = employeeService.jwtUserBuild(wrapper);
             //生成token
@@ -68,8 +67,8 @@ public class EmployeeController {
             res.put("token", JwtUtil.createJwtTokenByUser(jwtUser.get()));
             return new Result(Code.GET_LOGIN_OK, res);
         } catch (NullPointerException e) {
-            //参数不匹配
-            return new Result(Code.SYSTEM_VALID_ERR, Message.SYSTEM_VALID_ERR_MSG);
+            //登录失败
+            return new Result(Code.GET_USER_ERR, Message.USER_ERR_MSG);
         }
     }
 
@@ -93,18 +92,34 @@ public class EmployeeController {
     /**
      * 新增员工
      */
-    @PostMapping("/create")
-    @RequiresPermissions("emp:add")
-    public Result employeeCreate(@Validated @RequestBody Employee employee) throws ExecutionException, InterruptedException {
-        CompletableFuture<Integer> flag = employeeService.create(employee);
-        return new Result(flag.get() > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    @PostMapping("/createEmployee")
+    public Result employeeCreate(@Validated @RequestBody Employee employee) {
+        Integer flag = employeeService.createEmployee(employee);
+        return new Result(flag > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    }
+
+    /**
+     * 新增角色
+     */
+    @PostMapping("/createRoles")
+    public Result roleCreate(@RequestBody Role role) {
+        Integer flag = employeeService.addRoles(role);
+        return new Result(flag > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    }
+
+    /**
+     * 新增权限
+     */
+    @PostMapping("/createPermission")
+    public Result permissionCreate(@RequestBody Permission permission) {
+        Integer flag = employeeService.addPermission(permission);
+        return new Result(flag > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
     }
 
     /**
      * 账户禁用控制
      */
     @PutMapping("/disable")
-    @RequiresPermissions("emp:isDisable")
     public Result employeeDisable(@RequestBody Employee employee) {
         Integer flag = employeeService.Disable(employee);
         return new Result(flag > 0 ? Code.UPDATE_OK : Code.UPDATE_ERR, null);
@@ -141,21 +156,10 @@ public class EmployeeController {
     }
 
     /**
-     * token校验，返回权限列表
+     * token校验，权限比对
      */
-    @GetMapping("/check/{token}")
-    public Shiro checkToken(@PathVariable("token") String token) {
-        Shiro shiro = new Shiro();
-        boolean isCheck = JwtUtil.verifyTokenOfUser(token);
-        JwtUser info = JwtUtil.getInfo(token);
-        if (info != null && isCheck) {
-            shiro.setIsCheck("ture");
-            shiro.setUsername(info.getUsername());
-            shiro.setRoles(info.getRoles());
-            shiro.setUid(info.getUid());
-        } else {
-            shiro.setIsCheck("false");
-        }
-        return shiro;
+    @GetMapping("/check/{token}/{roles}")
+    public Shiro checkToken(@PathVariable("token") String token, @PathVariable("roles") String roles) throws ExecutionException, InterruptedException {
+        return employeeService.Check(token, roles).get();
     }
 }

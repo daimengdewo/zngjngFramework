@@ -35,22 +35,23 @@ public class Employee implements Serializable {
     private String phone;
 
     @NotNull
-    private Integer sex;
-
-    @NotNull
     @Size(min = 15, max = 18, message = "手机号码的长度必须在15-18之间")
     private String idNumber;
 
+    /**
+     * 账号是否禁用
+     */
     private Integer status;
+
+    /**
+     * 分配角色id
+     */
+    @TableField(exist = false)
+    private Long role_id;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    private Long createUser;
-
-    private Long updateUser;
-
 }

@@ -1,4 +1,4 @@
-package com.awen.user.common;
+package com.awen.feign.common;
 
 public class Message {
     public static final String LOGIN_ERR_MSG = "登录失败！";
@@ -10,4 +10,5 @@ public class Message {
     public static final String SYSTEM_VALID_ERR_MSG = "参数不匹配！";
     public static final String TOO_MUCH_EMP_ERR_MSG = "用户名或手机号已存在！";
     public static final String CODE_ERR_MSG = "验证码错误或已经失效！";
+    public static final String GET_ERR_MSG = "数据库查询失败！";
 }
