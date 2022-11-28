@@ -30,7 +30,14 @@ public class Code {
      * 新增失败
      */
     public static final Integer SAVE_ERR = 20010;
+    /**
+     * 删除失败
+     */
     public static final Integer DELETE_ERR = 20020;
+    /**
+     * 禁止直接移除角色唯一权限
+     */
+    public static final Integer DELETE_LAST_ROLE_ERR = 20021;
     public static final Integer UPDATE_ERR = 20030;
     /**
      * 查询失败

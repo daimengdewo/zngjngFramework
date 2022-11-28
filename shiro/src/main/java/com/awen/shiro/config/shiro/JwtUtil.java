@@ -44,7 +44,7 @@ public class JwtUtil {
             JWTVerifier verifier = JWT.require(algorithm)
                     .build();
             verifier.verify(token);
-            //能走到这里
+            //能走到这里说明校验成功
             return true;
         } catch (IllegalArgumentException | JWTVerificationException e) {
             return false;
@@ -52,7 +52,7 @@ public class JwtUtil {
     }
 
     /**
-     * 获取用户信息
+     * 读取token携带的用户信息
      */
     public static JwtUser getInfo(String token) {
         JwtUser user = new JwtUser();
@@ -65,18 +65,6 @@ public class JwtUtil {
         } catch (JWTDecodeException e) {
             return null;
         }
-    }
-
-    /**
-     * 保存用户信息
-     */
-    public static JwtUser recreateUserFromToken(String token) {
-        JwtUser user = new JwtUser();
-        DecodedJWT jwt = JWT.decode(token);
-        user.setUsername(jwt.getClaim("username").asString());
-        user.setUid(jwt.getClaim("uid").asLong());
-        user.setRoles(jwt.getClaim("roles").asList(String.class));
-        return user;
     }
 
     /**

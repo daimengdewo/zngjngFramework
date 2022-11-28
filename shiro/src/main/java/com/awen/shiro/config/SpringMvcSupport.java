@@ -21,6 +21,7 @@ public class SpringMvcSupport extends WebMvcConfigurationSupport {
      */
     @Override
     protected void addInterceptors(InterceptorRegistry registry) {
+        //这里可以根据自己的具体需求来
         registry.addInterceptor(projectInterceptor).addPathPatterns("/**");
     }
 

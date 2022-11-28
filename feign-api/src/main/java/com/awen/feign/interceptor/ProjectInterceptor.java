@@ -24,19 +24,19 @@ public class ProjectInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (HandlerMethod.class.equals(handler.getClass())) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
-            //反射获取注解
+            //通过反射获取注解
             ShiroCheck shiroCheck = handlerMethod.getMethod().getAnnotation(ShiroCheck.class);
             if (shiroCheck != null) {
                 //获取token
                 String token = request.getHeader("Authorization").replace("Bearer ", "");
-                //校验
-                Shiro result = shiroTool.check(token, shiroCheck.roles());
-                //判断权限检查结果
+                //远程调用安全模块 做token合法性验证和权限校验
+                Shiro result = shiroTool.check(token, shiroCheck.roles());//注解保存的接口权限要求，类似shiro的@RequiresRoles
+                //如果失败，重定向到token校验异常返回
                 if (!result.getIsCheck()) {
                     request.getRequestDispatcher("/user/tokenError").forward(request, response);
                     return result.getIsCheck();
                 }
-                //根据权限列表判断
+                //如果没有权限，重定向到权限校验异常返回
                 if (!result.getIsRoleCheck()) {
                     request.getRequestDispatcher("/user/rolesError").forward(request, response);
                     return result.getIsRoleCheck();
@@ -45,12 +45,4 @@ public class ProjectInterceptor implements HandlerInterceptor {
         }
         return true;
     }
-
-//    @Override
-//    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-//    }
-//
-//    @Override
-//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-//    }
 }

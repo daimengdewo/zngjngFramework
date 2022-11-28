@@ -7,17 +7,22 @@ import cn.hutool.crypto.SecureUtil;
 import com.awen.feign.common.Code;
 import com.awen.feign.common.Message;
 import com.awen.feign.entity.Shiro;
+import com.awen.feign.tool.FunctionMenu;
 import com.awen.shiro.config.shiro.JwtUtil;
-import com.awen.shiro.entity.*;
+import com.awen.shiro.entity.Employee;
+import com.awen.shiro.entity.JwtUser;
+import com.awen.shiro.entity.Permission;
+import com.awen.shiro.entity.Role;
 import com.awen.shiro.exception.BusinessException;
-import com.awen.shiro.mapper.*;
+import com.awen.shiro.mapper.EmployeeMapper;
 import com.awen.shiro.service.EmployeeService;
+import com.awen.shiro.tool.GeneralTools;
+import com.awen.shiro.tool.MapperMenu;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,17 +37,9 @@ import java.util.concurrent.TimeUnit;
 public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> implements EmployeeService {
 
     @Autowired
-    private EmployeeMapper employeeMapper;
+    private MapperMenu mapperMenu;
     @Autowired
-    private PermissionMapper permissionMapper;
-    @Autowired
-    private EmployeeRoleMapper employeeRoleMapper;
-    @Autowired
-    private RoleMapper roleMapper;
-    @Autowired
-    private RolePermissionMapper rolePermissionMapper;
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private GeneralTools generalTools;
 
     //盐
     @Value("${jwtProperties.Salt}")
@@ -58,26 +55,16 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     @Override
     public Integer createEmployee(Employee employee) {
         //重复信息判断
-        LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Employee::getUsername, employee.getUsername())
-                .or().eq(Employee::getPhone, employee.getPhone());
-        Integer count = employeeMapper.selectCount(wrapper);
-        //如果已经存在则抛出异常
-        if (count > 0) {
+        if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) > 0) {
             throw new BusinessException(Code.SAVE_ERR, Message.TOO_MUCH_EMP_ERR_MSG);
         }
         //密码进行md5加盐处理
         String pass = SecureUtil.md5(employee.getPassword() + salt);
-        //员工对象
+        //新建员工
         employee.setPassword(pass);
-        int empFlag = employeeMapper.insert(employee);
+        mapperMenu.getEmployeeMapper().insert(employee);
         //分配角色
-        EmployeeRole employeeRole = new EmployeeRole();
-        employeeRole.setEmp_id(employee.getId());
-        employeeRole.setRole_id(employee.getRole_id());
-        //必须全部插入成功才返回1
-        int empRoleFlag = employeeRoleMapper.insert(employeeRole);
-        if (empRoleFlag > 0 && empFlag > 0) {
+        if (generalTools.setEmployeeRole(employee.getId(), employee.getRole_id()) > 0) {
             return 1;
         } else {
             return 0;
@@ -85,54 +72,88 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     }
 
     /**
-     * 新增角色并分配权限
+     * 角色操作
      */
     @Override
-    public Integer addRoles(Role role) {
-        //去重条件
-        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Role::getName, role.getName());
-        //查询重复角色
-        Integer count = roleMapper.selectCount(wrapper);
-        if (count > 0) {
-            return 0;
+    @Async
+    public CompletableFuture<Boolean> RolesUtil(Role role, FunctionMenu menu) {
+        //操作结果标识
+        boolean result = false;
+        switch (menu) {
+            case ADD:
+                //查询重复角色
+                if (generalTools.duplicateRole(role.getName()) > 0
+                        //查询是否存在该权限
+                        && generalTools.duplicatePermission(role.getPermission_id()) == 0) {
+                    break;
+                }
+                //插入角色
+                mapperMenu.getRoleMapper().insert(role);
+                //建立角色权限映射关系
+                if (generalTools.setRolePermission(role.getId(), role.getPermission_id()) > 0) {
+                    result = true;
+                }
+                break;
+            case DELETE:
+                //角色是否存在
+                if (generalTools.duplicateRole(role.getId()) == 0) {
+                    break;
+                }
+                //删除角色
+                if (generalTools.deleteRole(role.getId()) > 0
+                        && generalTools.delRolePermission(role.getId()) > 0) {
+                    result = true;
+                }
+                break;
+            case DELETE_ONE:
+                //角色是否存在
+                if (generalTools.duplicateRole(role.getId()) == 0) {
+                    break;
+                }
+                //删除角色指定权限
+                if (generalTools.delRolePermission(role.getId(), role.getPermission_id()) > 1) {
+                    result = true;
+                } else {
+                    throw new BusinessException(Code.DELETE_LAST_ROLE_ERR, Message.DELETE_LAST_ROLE_ERR_MSG);
+                }
+                break;
+            case UPDATE:
+                //角色是否存在
+                if (generalTools.duplicateRole(role.getId()) == 0) {
+                    break;
+                }
+                if (generalTools.updateRole(role) > 0) {
+                    result = true;
+                }
+                break;
         }
-        //查询是否存在该权限
-        LambdaQueryWrapper<Permission> P_wrapper = new LambdaQueryWrapper<>();
-        P_wrapper.eq(Permission::getId, role.getPermission_id());
-        Integer P_count = permissionMapper.selectCount(P_wrapper);
-        if (P_count <= 0) {
-            return 0;
-        }
-        //插入角色
-        int roleFlag = roleMapper.insert(role);
-        //角色权限映射关系
-        RolePermission rolePermission = new RolePermission();
-        rolePermission.setRole_id(role.getId());
-        rolePermission.setPermission_id(role.getPermission_id());
-        int rolePermissionFlag = rolePermissionMapper.insert(rolePermission);
-        //必须全部插入成功才返回1
-        if (roleFlag > 0 && rolePermissionFlag > 0) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return CompletableFuture.completedFuture(result);
     }
 
     /**
-     * 新增权限
+     * 分页查询角色列表
+     */
+    @Override
+    public Page<Role> selectListRole(Integer current, Integer size) {
+        //构造一个分页构造器
+        Page<Role> pageInfo = new Page<>(current, size);
+        //条件构造器
+        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
+        //按更新时间排序
+        wrapper.orderByDesc(Role::getUpdateTime);
+        return mapperMenu.getRoleMapper().selectPage(pageInfo, wrapper);
+    }
+
+    /**
+     * 权限操作
      */
     @Override
     public Integer addPermission(Permission permission) {
-        //去重
-        LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Permission::getInfo, permission.getInfo());
         //查询重复权限
-        Integer count = permissionMapper.selectCount(wrapper);
-        if (count > 0) {
+        if (generalTools.duplicatePermission(permission.getInfo()) > 0) {
             return 0;
         }
-        return permissionMapper.insert(permission);
+        return mapperMenu.getPermissionMapper().insert(permission);
     }
 
     /**
@@ -152,7 +173,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         wrapper.like(name != null, Employee::getName, name);
         //按更新时间排序
         wrapper.orderByDesc(Employee::getUpdateTime);
-        return employeeMapper.selectPage(pageInfo, wrapper);
+        return mapperMenu.getEmployeeMapper().selectPage(pageInfo, wrapper);
     }
 
     /**
@@ -161,10 +182,9 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
      * 3.构造jwtUser
      */
     @Override
-    @Async
-    public CompletableFuture<JwtUser> jwtUserBuild(LambdaQueryWrapper<Employee> wrapper) {
+    public JwtUser jwtUserBuild(LambdaQueryWrapper<Employee> wrapper) {
         //查询员工信息
-        Employee employee = employeeMapper.selectOne(wrapper);
+        Employee employee = mapperMenu.getEmployeeMapper().selectOne(wrapper);
         //非空判断
         if (employee != null) {
             //判断账户状态是否正常
@@ -176,15 +196,15 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
             jwtUser.setUsername(employee.getUsername());
             jwtUser.setUid(employee.getId());
             //查询账户角色
-            List<String> roles = employeeMapper.getUserRoleInfoMapper(employee.getUsername());
+            List<String> roles = mapperMenu.getEmployeeMapper().getUserRoleInfoMapper(employee.getUsername());
             //查询角色权限
-            List<String> permission = employeeMapper.getUserPermissionInfoMapper(roles);
+            List<String> permission = mapperMenu.getEmployeeMapper().getUserPermissionInfoMapper(roles);
             //存入权限信息
             jwtUser.setRoles(permission);
             //返回jwtUser对象
-            return CompletableFuture.completedFuture(jwtUser);
+            return jwtUser;
         }
-        return CompletableFuture.completedFuture(null);
+        return null;
     }
 
     /**
@@ -198,7 +218,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         //修改账户状态
         employee.setStatus(employee.getStatus());
         //执行更新操作
-        return employeeMapper.updateById(employee);
+        return mapperMenu.getEmployeeMapper().updateById(employee);
     }
 
     /**
@@ -219,7 +239,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         String keyId = new Date().getTime() + RandomUtil.randomString(6);
         res.put("keyId", keyId);
         //保存该验证码120秒
-        redisTemplate.opsForValue().set(keyId, verifyCode, 120, TimeUnit.SECONDS);
+        mapperMenu.getRedisTemplate().opsForValue().set(keyId, verifyCode, 120, TimeUnit.SECONDS);
         return res;
     }
 
@@ -233,13 +253,13 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     public Boolean VerifyImageCode(String keyId, String code) {
         boolean flag = false;
         //从redis取出验证码
-        String verifyCode = redisTemplate.opsForValue().get(keyId);
+        String verifyCode = mapperMenu.getRedisTemplate().opsForValue().get(keyId);
         //判断是否正确
         if (verifyCode != null) {
             flag = code.equals(verifyCode);
             //如果正确，则立即删除该验证码
             if (flag) {
-                redisTemplate.delete(keyId);
+                mapperMenu.getRedisTemplate().delete(keyId);
             }
         }
         return flag;
@@ -252,9 +272,10 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     @Async
     public CompletableFuture<Shiro> Check(String token, String roles) {
         Shiro shiro = new Shiro();
-        boolean isCheck = JwtUtil.verifyTokenOfUser(token);
-        JwtUser info = JwtUtil.getInfo(token);
         //判断token是否有效
+        boolean isCheck = JwtUtil.verifyTokenOfUser(token);
+        //取出jwt携带的用户信息
+        JwtUser info = JwtUtil.getInfo(token);
         if (info != null && isCheck) {
             //构造shiro对象
             shiro.setIsCheck(true);
@@ -274,6 +295,4 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         }
         return CompletableFuture.completedFuture(shiro);
     }
-
-
 }
