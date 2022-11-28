@@ -5,6 +5,7 @@ import com.awen.feign.common.Code;
 import com.awen.feign.common.Message;
 import com.awen.feign.common.Result;
 import com.awen.feign.entity.Shiro;
+import com.awen.feign.tool.FunctionMenu;
 import com.awen.shiro.config.shiro.JwtUtil;
 import com.awen.shiro.entity.Employee;
 import com.awen.shiro.entity.JwtUser;
@@ -61,10 +62,10 @@ public class EmployeeController {
             wrapper.eq(Employee::getUsername, map.get("username").toString())
                     .eq(Employee::getPassword, SecureUtil.md5(map.get("password").toString() + salt));
             //构造jwt对象
-            CompletableFuture<JwtUser> jwtUser = employeeService.jwtUserBuild(wrapper);
+            JwtUser jwtUser = employeeService.jwtUserBuild(wrapper);
             //生成token
             Map<String, String> res = new HashMap<>();
-            res.put("token", JwtUtil.createJwtTokenByUser(jwtUser.get()));
+            res.put("token", JwtUtil.createJwtTokenByUser(jwtUser));
             return new Result(Code.GET_LOGIN_OK, res);
         } catch (NullPointerException e) {
             //登录失败
@@ -82,10 +83,10 @@ public class EmployeeController {
         //创建wrapper对象
         wrapper.eq(Employee::getPhone, employee.getPhone());
         //构造jwt对象
-        CompletableFuture<JwtUser> jwtUser = employeeService.jwtUserBuild(wrapper);
+        JwtUser jwtUser = employeeService.jwtUserBuild(wrapper);
         //生成token
         Map<String, String> res = new HashMap<>();
-        res.put("token", JwtUtil.createJwtTokenByUser(jwtUser.get()));
+        res.put("token", JwtUtil.createJwtTokenByUser(jwtUser));
         return new Result(Code.GET_LOGIN_OK, res);
     }
 
@@ -99,12 +100,60 @@ public class EmployeeController {
     }
 
     /**
+     * 删除员工
+     */
+
+
+    /**
      * 新增角色
      */
-    @PostMapping("/createRoles")
-    public Result roleCreate(@RequestBody Role role) {
-        Integer flag = employeeService.addRoles(role);
-        return new Result(flag > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    @PostMapping("/addRoles")
+    public Result addRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
+        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.ADD);
+        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    }
+
+    /**
+     * 删除角色
+     */
+    @DeleteMapping("/deleteRoles")
+    public Result deleteRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
+        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.DELETE);
+        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    }
+
+    /**
+     * 删除角色
+     */
+    @DeleteMapping("/deleteRolesOne")
+    public Result deleteRolesOne(@RequestBody Role role) throws ExecutionException, InterruptedException {
+        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.DELETE_ONE);
+        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    }
+
+    /**
+     * 修改角色
+     */
+    @PutMapping("/updateRoles")
+    public Result updateRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
+        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.UPDATE);
+        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    }
+
+    /**
+     * 角色列表分页查询
+     */
+    @GetMapping("/listRoles")
+    public Result listRoles(@RequestBody Map<String, Object> map) {
+        try {
+            Page<Role> employeePage =
+                    employeeService.selectListRole((Integer) map.get("current"),
+                            (Integer) map.get("size"));
+            return new Result(employeePage != null ? Code.GET_OK : Code.GET_ERR, employeePage);
+        } catch (NullPointerException e) {
+            //参数不匹配
+            return new Result(Code.SYSTEM_VALID_ERR, Message.SYSTEM_VALID_ERR_MSG);
+        }
     }
 
     /**
@@ -128,8 +177,8 @@ public class EmployeeController {
     /**
      * 员工列表分页查询
      */
-    @GetMapping("/list")
-    public Result employeeList(@RequestBody Map<String, Object> map) {
+    @GetMapping("/listEmployee")
+    public Result listEmployee(@RequestBody Map<String, Object> map) {
         try {
             Page<Employee> employeePage =
                     employeeService.selectList((Integer) map.get("current"),
@@ -156,7 +205,7 @@ public class EmployeeController {
     }
 
     /**
-     * token校验，权限比对
+     * token校验和权限比对
      */
     @GetMapping("/check/{token}/{roles}")
     public Shiro checkToken(@PathVariable("token") String token, @PathVariable("roles") String roles) throws ExecutionException, InterruptedException {

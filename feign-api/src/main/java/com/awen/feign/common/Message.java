@@ -11,4 +11,5 @@ public class Message {
     public static final String TOO_MUCH_EMP_ERR_MSG = "用户名或手机号已存在！";
     public static final String CODE_ERR_MSG = "验证码错误或已经失效！";
     public static final String GET_ERR_MSG = "数据库查询失败！";
+    public static final String DELETE_LAST_ROLE_ERR_MSG = "无法删除角色唯一权限！请尝试直接移除角色！";
 }
