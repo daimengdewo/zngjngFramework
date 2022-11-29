@@ -11,11 +11,8 @@
 - SpringBoot
 
 - JWT实现无状态token 
-
 如果对安全性有一定的需求，可以考虑以下思路。
-
 可选1：利用gateway网关做参数加解密
-
 可选2：jwt荷载加解密
 
 - Mybatis框架
