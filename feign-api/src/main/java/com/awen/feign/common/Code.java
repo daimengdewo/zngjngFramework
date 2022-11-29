@@ -9,6 +9,9 @@ package com.awen.feign.common;
  * 与业务相关的代码规则为：600x|x
  */
 public class Code {
+    /**
+     * 统一成功
+     */
     public static final Integer COMMON_OK = 10001;
     public static final Integer COMMON_ERR = 10000;
 
