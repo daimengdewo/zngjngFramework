@@ -13,6 +13,9 @@ public class Code {
      * 统一成功
      */
     public static final Integer COMMON_OK = 10001;
+    /**
+     * 统一失败
+     */
     public static final Integer COMMON_ERR = 10000;
 
     /**
