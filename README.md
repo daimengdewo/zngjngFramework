@@ -10,10 +10,9 @@
 
 - SpringBoot
 
-- JWT实现无状态token 
-如果对安全性有一定的需求，可以考虑以下思路。
-可选1：利用gateway网关做参数加解密
-可选2：jwt荷载加解密
+- JWT实现无状态token
+
+- gateway网关
 
 - Mybatis框架
 
@@ -24,6 +23,10 @@
 - Springcloud
 
 - Nacos 服务注册中心 实现负载均衡
+
+如果对安全性有一定的需求，可以考虑以下思路。
+可选1：利用gateway网关做参数加解密
+可选2：jwt荷载加解密
 
 #### 软件架构
 
