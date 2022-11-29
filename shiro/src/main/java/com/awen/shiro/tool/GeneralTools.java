@@ -39,7 +39,7 @@ public class GeneralTools {
     //角色更新
     public Integer updateRole(Role role) {
         LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Role::getName, role.getName());
+        wrapper.eq(Role::getId, role.getId());
         return mapperMenu.getRoleMapper().update(role, wrapper);
     }
 
@@ -80,6 +80,22 @@ public class GeneralTools {
         LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Permission::getInfo, info);
         return mapperMenu.getPermissionMapper().selectCount(wrapper);
+    }
+
+    //删除权限
+    public Integer deletePermission(Long permission_id) {
+        //去重条件
+        LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Permission::getId, permission_id);
+        return mapperMenu.getPermissionMapper().delete(wrapper);
+    }
+
+    //更新权限
+    public Integer updatePermission(Permission permission) {
+        //去重条件
+        LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Permission::getId, permission.getId());
+        return mapperMenu.getPermissionMapper().update(permission, wrapper);
     }
 
     //查询重复账户

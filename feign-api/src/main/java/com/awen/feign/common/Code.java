@@ -16,7 +16,13 @@ public class Code {
      * 新增成功
      */
     public static final Integer SAVE_OK = 20011;
+    /**
+     * 删除成功
+     */
     public static final Integer DELETE_OK = 20021;
+    /**
+     * 更新成功
+     */
     public static final Integer UPDATE_OK = 20031;
     /**
      * 查询成功
@@ -38,6 +44,9 @@ public class Code {
      * 禁止直接移除角色唯一权限
      */
     public static final Integer DELETE_LAST_ROLE_ERR = 20021;
+    /**
+     * 更新失败
+     */
     public static final Integer UPDATE_ERR = 20030;
     /**
      * 查询失败

@@ -5,12 +5,9 @@ import com.awen.feign.common.Code;
 import com.awen.feign.common.Message;
 import com.awen.feign.common.Result;
 import com.awen.feign.entity.Shiro;
-import com.awen.feign.tool.FunctionMenu;
 import com.awen.shiro.config.shiro.JwtUtil;
 import com.awen.shiro.entity.Employee;
 import com.awen.shiro.entity.JwtUser;
-import com.awen.shiro.entity.Permission;
-import com.awen.shiro.entity.Role;
 import com.awen.shiro.service.EmployeeService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -24,7 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -102,68 +98,6 @@ public class EmployeeController {
     /**
      * 删除员工
      */
-
-
-    /**
-     * 新增角色
-     */
-    @PostMapping("/addRoles")
-    public Result addRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
-        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.ADD);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
-    }
-
-    /**
-     * 删除角色
-     */
-    @DeleteMapping("/deleteRoles")
-    public Result deleteRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
-        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.DELETE);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
-    }
-
-    /**
-     * 删除角色
-     */
-    @DeleteMapping("/deleteRolesOne")
-    public Result deleteRolesOne(@RequestBody Role role) throws ExecutionException, InterruptedException {
-        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.DELETE_ONE);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
-    }
-
-    /**
-     * 修改角色
-     */
-    @PutMapping("/updateRoles")
-    public Result updateRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
-        CompletableFuture<Boolean> flag = employeeService.RolesUtil(role, FunctionMenu.UPDATE);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
-    }
-
-    /**
-     * 角色列表分页查询
-     */
-    @GetMapping("/listRoles")
-    public Result listRoles(@RequestBody Map<String, Object> map) {
-        try {
-            Page<Role> employeePage =
-                    employeeService.selectListRole((Integer) map.get("current"),
-                            (Integer) map.get("size"));
-            return new Result(employeePage != null ? Code.GET_OK : Code.GET_ERR, employeePage);
-        } catch (NullPointerException e) {
-            //参数不匹配
-            return new Result(Code.SYSTEM_VALID_ERR, Message.SYSTEM_VALID_ERR_MSG);
-        }
-    }
-
-    /**
-     * 新增权限
-     */
-    @PostMapping("/createPermission")
-    public Result permissionCreate(@RequestBody Permission permission) {
-        Integer flag = employeeService.addPermission(permission);
-        return new Result(flag > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
-    }
 
     /**
      * 账户禁用控制
