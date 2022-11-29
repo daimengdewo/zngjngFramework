@@ -2,18 +2,23 @@
 
 #### 介绍
 
-Spring分布式架构示例项目，纯后端代码，预计包含详细注释。
+因为是自己使用的完整方案，所以有些地方可能没有考虑那么周到，请多包涵。
 
 使用到的技术包括：
 
 1.SpringMVC
 2.SpringBoot
-3.JWT实现无状态token  配合gateway
+3.JWT实现无状态token 
+
+如果对安全性有一定的需求，可以考虑以下思路。
+可选1：利用gateway网关做参数加解密
+可选2：jwt荷载加解密
+
 4.Mybatis框架
 5.MybatisPlus增强
 6.Redis做验证码缓存
 7.Springcloud
-8.nacos 注册中心 实现负载均衡
+8.Nacos 服务注册中心 实现负载均衡
 
 #### 软件架构
 
@@ -41,7 +46,25 @@ https://blog.csdn.net/qq_33944367?type=blog
 
 #### 使用说明
 
-大佬看得上随便用哈。
+### 1.接口权限声明注解
+
+首先在配置类中注册拦截器ProjectInterceptor
+
+```
+    protected void addInterceptors(InterceptorRegistry registry) {
+        //这里可以根据自己的具体需求来
+        registry.addInterceptor(projectInterceptor).addPathPatterns("/**");
+    }
+```
+随后便可在接口上方使用该注解@ShiroCheck(roles = "")
+
+```
+    @GetMapping("/{id}")
+    @ShiroCheck(roles = "test")
+    public User queryById(@PathVariable("id") Long id) {
+        return userService.queryById(id);
+    }
+```
 
 #### 参与贡献
 
