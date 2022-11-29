@@ -7,6 +7,7 @@ import cn.hutool.crypto.SecureUtil;
 import com.awen.feign.common.Code;
 import com.awen.feign.common.Message;
 import com.awen.feign.entity.Shiro;
+import com.awen.feign.tool.FunctionMenu;
 import com.awen.shiro.config.shiro.JwtUtil;
 import com.awen.shiro.entity.Employee;
 import com.awen.shiro.entity.JwtUser;
@@ -50,22 +51,50 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
      * 5.返回结果
      */
     @Override
-    public Integer createEmployee(Employee employee) {
-        //重复信息判断
-        if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) > 0) {
-            throw new BusinessException(Code.SAVE_ERR, Message.TOO_MUCH_EMP_ERR_MSG);
+    public Boolean employeeUtil(Employee employee, FunctionMenu menu) {
+        //操作结果标识
+        boolean result = false;
+        switch (menu) {
+            case ADD:
+                //用户是否存在
+                if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) > 0) {
+                    //提示用户重复
+                    throw new BusinessException(Code.SAVE_ERR, Message.TOO_MUCH_EMP_ERR_MSG);
+                }
+                //密码进行md5加盐处理
+                String pass = SecureUtil.md5(employee.getPassword() + salt);
+                //密码加密
+                employee.setPassword(pass);
+                //新增账户
+                mapperMenu.getEmployeeMapper().insert(employee);
+                //分配角色
+                if (generalTools.setEmployeeRole(employee.getId(), employee.getRole_id()) > 0) {
+                    result = true;
+                }
+                break;
+            case DELETE:
+                //用户是否存在
+                if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) == 0) {
+                    //提示不存在该用户
+                    throw new BusinessException(Code.DELETE_ERR, Message.EMPLOYEE_ERR_MSG);
+                }
+                if (generalTools.deleteEmployee(employee.getId()) > 0
+                        && generalTools.delEmployeeRole(employee.getId()) > 0) {
+                    result = true;
+                }
+                break;
+            case UPDATE:
+                //用户是否存在
+                if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) == 0) {
+                    //提示不存在该用户
+                    throw new BusinessException(Code.UPDATE_ERR, Message.EMPLOYEE_ERR_MSG);
+                }
+                if (generalTools.updateEmployee(employee) > 0) {
+                    result = true;
+                }
+                break;
         }
-        //密码进行md5加盐处理
-        String pass = SecureUtil.md5(employee.getPassword() + salt);
-        //新建员工
-        employee.setPassword(pass);
-        mapperMenu.getEmployeeMapper().insert(employee);
-        //分配角色
-        if (generalTools.setEmployeeRole(employee.getId(), employee.getRole_id()) > 0) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return result;
     }
 
     /**
@@ -126,7 +155,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
      * @return flag判断是否成功
      */
     @Override
-    public Integer Disable(Employee employee) {
+    public Integer disable(Employee employee) {
         //修改账户状态
         employee.setStatus(employee.getStatus());
         //执行更新操作
@@ -137,7 +166,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
      * 生成验证码图片并保存到redis缓存中
      */
     @Override
-    public Map<String, String> VerifyCreate(HttpServletResponse response) {
+    public Map<String, String> verifyCreate(HttpServletResponse response) {
         //定义哈希表
         Map<String, String> res = new HashMap<>();
         //定义图形验证码的长、宽、验证码字符数、干扰线宽度
@@ -162,7 +191,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
      * @return flag判断结果
      */
     @Override
-    public Boolean VerifyImageCode(String keyId, String code) {
+    public Boolean verifyImageCode(String keyId, String code) {
         boolean flag = false;
         //从redis取出验证码
         String verifyCode = mapperMenu.getRedisTemplate().opsForValue().get(keyId);

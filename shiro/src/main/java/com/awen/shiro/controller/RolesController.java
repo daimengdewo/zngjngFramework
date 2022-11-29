@@ -38,7 +38,7 @@ public class RolesController {
     @DeleteMapping("/delete")
     public Result deleteRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
         CompletableFuture<Boolean> flag = rolesService.RolesUtil(role, FunctionMenu.DELETE);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+        return new Result(flag.get() ? Code.DELETE_OK : Code.DELETE_ERR, null);
     }
 
     /**
@@ -47,7 +47,7 @@ public class RolesController {
     @DeleteMapping("/deleteOne")
     public Result deleteRolesOne(@RequestBody Role role) throws ExecutionException, InterruptedException {
         CompletableFuture<Boolean> flag = rolesService.RolesUtil(role, FunctionMenu.DELETE_ONE);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+        return new Result(flag.get() ? Code.DELETE_OK : Code.DELETE_ERR, null);
     }
 
     /**
@@ -56,7 +56,7 @@ public class RolesController {
     @PutMapping("/update")
     public Result updateRoles(@RequestBody Role role) throws ExecutionException, InterruptedException {
         CompletableFuture<Boolean> flag = rolesService.RolesUtil(role, FunctionMenu.UPDATE);
-        return new Result(flag.get() ? Code.SAVE_OK : Code.SAVE_ERR, null);
+        return new Result(flag.get() ? Code.UPDATE_OK : Code.UPDATE_ERR, null);
     }
 
     /**

@@ -5,6 +5,7 @@ import com.awen.feign.common.Code;
 import com.awen.feign.common.Message;
 import com.awen.feign.common.Result;
 import com.awen.feign.entity.Shiro;
+import com.awen.feign.tool.FunctionMenu;
 import com.awen.shiro.config.shiro.JwtUtil;
 import com.awen.shiro.entity.Employee;
 import com.awen.shiro.entity.JwtUser;
@@ -44,7 +45,7 @@ public class EmployeeController {
     public Result employeeLogin(@RequestBody Map<String, Object> map) throws ExecutionException, InterruptedException {
         try {
             //校验图形验证码
-            Boolean verify = employeeService.VerifyImageCode(
+            Boolean verify = employeeService.verifyImageCode(
                     map.get("keyId").toString(),
                     map.get("code").toString());
             //校验失败返回
@@ -65,7 +66,7 @@ public class EmployeeController {
             return new Result(Code.GET_LOGIN_OK, res);
         } catch (NullPointerException e) {
             //登录失败
-            return new Result(Code.GET_USER_ERR, Message.USER_ERR_MSG);
+            return new Result(Code.GET_USER_ERR, Message.LOGIN_ERR_MSG);
         }
     }
 
@@ -89,22 +90,36 @@ public class EmployeeController {
     /**
      * 新增员工
      */
-    @PostMapping("/createEmployee")
-    public Result employeeCreate(@Validated @RequestBody Employee employee) {
-        Integer flag = employeeService.createEmployee(employee);
-        return new Result(flag > 0 ? Code.SAVE_OK : Code.SAVE_ERR, null);
+    @PostMapping("/add")
+    public Result addEmployee(@Validated @RequestBody Employee employee) {
+        Boolean flag = employeeService.employeeUtil(employee, FunctionMenu.ADD);
+        return new Result(flag ? Code.SAVE_OK : Code.SAVE_ERR, null);
     }
 
     /**
      * 删除员工
      */
+    @PostMapping("/delete")
+    public Result deleteEmployee(@Validated @RequestBody Employee employee) {
+        Boolean flag = employeeService.employeeUtil(employee, FunctionMenu.DELETE);
+        return new Result(flag ? Code.DELETE_OK : Code.DELETE_ERR, null);
+    }
+
+    /**
+     * 修改员工
+     */
+    @PostMapping("/update")
+    public Result updateEmployee(@Validated @RequestBody Employee employee) {
+        Boolean flag = employeeService.employeeUtil(employee, FunctionMenu.UPDATE);
+        return new Result(flag ? Code.UPDATE_OK : Code.UPDATE_ERR, null);
+    }
 
     /**
      * 账户禁用控制
      */
     @PutMapping("/disable")
     public Result employeeDisable(@RequestBody Employee employee) {
-        Integer flag = employeeService.Disable(employee);
+        Integer flag = employeeService.disable(employee);
         return new Result(flag > 0 ? Code.UPDATE_OK : Code.UPDATE_ERR, null);
     }
 
@@ -131,7 +146,7 @@ public class EmployeeController {
     public Result Verify(HttpServletResponse response) {
         Map<String, String> res;
         try {
-            res = employeeService.VerifyCreate(response);
+            res = employeeService.verifyCreate(response);
         } catch (IOException e) {
             return new Result(Code.COMMON_ERR, null);
         }

@@ -1,7 +1,10 @@
 package com.awen.shiro.service.impl;
 
+import com.awen.feign.common.Code;
+import com.awen.feign.common.Message;
 import com.awen.feign.tool.FunctionMenu;
 import com.awen.shiro.entity.Permission;
+import com.awen.shiro.exception.BusinessException;
 import com.awen.shiro.mapper.PermissionMapper;
 import com.awen.shiro.service.PermissionService;
 import com.awen.shiro.tool.GeneralTools;
@@ -37,7 +40,8 @@ public class PermissionImpl extends ServiceImpl<PermissionMapper, Permission> im
             case ADD:
                 //权限重复判断
                 if (generalTools.duplicatePermission(permission.getInfo()) > 0) {
-                    break;
+                    //已存在该权限
+                    throw new BusinessException(Code.DELETE_ERR, Message.PERMISSION_ERR_MSG);
                 }
                 if (mapperMenu.getPermissionMapper().insert(permission) > 0) {
                     result = true;
@@ -46,7 +50,8 @@ public class PermissionImpl extends ServiceImpl<PermissionMapper, Permission> im
             case DELETE:
                 //权限重复判断
                 if (generalTools.duplicatePermission(permission.getId()) == 0) {
-                    break;
+                    //不存在该权限
+                    throw new BusinessException(Code.DELETE_ERR, Message.PERMISSION_NOTNULL_ERR_MSG);
                 }
                 if (generalTools.deletePermission(permission.getId()) > 0) {
                     result = true;
@@ -55,7 +60,8 @@ public class PermissionImpl extends ServiceImpl<PermissionMapper, Permission> im
             case UPDATE:
                 //权限重复判断
                 if (generalTools.duplicatePermission(permission.getId()) == 0) {
-                    break;
+                    //不存在该权限
+                    throw new BusinessException(Code.DELETE_ERR, Message.PERMISSION_NOTNULL_ERR_MSG);
                 }
                 if (generalTools.updatePermission(permission) > 0) {
                     result = true;

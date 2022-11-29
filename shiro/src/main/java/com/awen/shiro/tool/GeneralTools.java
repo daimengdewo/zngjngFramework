@@ -107,6 +107,22 @@ public class GeneralTools {
         return mapperMenu.getEmployeeMapper().selectCount(wrapper);
     }
 
+    //删除账户
+    public Integer deleteEmployee(Long emp_id) {
+        //去重条件
+        LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Employee::getId, emp_id);
+        return mapperMenu.getEmployeeMapper().delete(wrapper);
+    }
+
+    //更新账户
+    public Integer updateEmployee(Employee employee) {
+        //去重条件
+        LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Employee::getId, employee.getId());
+        return mapperMenu.getEmployeeMapper().update(employee, wrapper);
+    }
+
     //建立账户和角色映射
     public Integer setEmployeeRole(Long employee_id, Long role_id) {
         EmployeeRole employeeRole = new EmployeeRole();
