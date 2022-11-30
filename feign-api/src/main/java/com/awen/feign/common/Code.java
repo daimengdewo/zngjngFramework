@@ -49,7 +49,7 @@ public class Code {
     /**
      * 禁止直接移除角色唯一权限
      */
-    public static final Integer DELETE_LAST_ROLE_ERR = 20021;
+    public static final Integer DELETE_LAST_ROLE_ERR = 20020;
     /**
      * 更新失败
      */

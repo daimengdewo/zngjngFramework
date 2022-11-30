@@ -37,11 +37,11 @@ public class RolesServiceImpl extends ServiceImpl<RoleMapper, Role> implements R
         boolean result = false;
         switch (menu) {
             case ADD:
-                //查询重复角色
+                //角色已存在
                 if (generalTools.duplicateRole(role.getName()) > 0
                         //查询是否存在该权限
                         && generalTools.duplicatePermission(role.getPermission_id()) == 0) {
-                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_ERR_MSG);
+                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_NOTNULL_ERR_MSG);
                 }
                 //插入角色
                 mapperMenu.getRoleMapper().insert(role);
@@ -51,9 +51,9 @@ public class RolesServiceImpl extends ServiceImpl<RoleMapper, Role> implements R
                 }
                 break;
             case DELETE:
-                //角色是否存在
+                //角色不存在
                 if (generalTools.duplicateRole(role.getId()) == 0) {
-                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_NOTNULL_ERR_MSG);
+                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_ERR_MSG);
                 }
                 //删除角色
                 if (generalTools.deleteRole(role.getId()) > 0
@@ -62,9 +62,9 @@ public class RolesServiceImpl extends ServiceImpl<RoleMapper, Role> implements R
                 }
                 break;
             case DELETE_ONE:
-                //角色是否存在
+                //角色不存在
                 if (generalTools.duplicateRole(role.getId()) == 0) {
-                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_NOTNULL_ERR_MSG);
+                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_ERR_MSG);
                 }
                 //删除角色指定权限
                 if (generalTools.delRolePermission(role.getId(), role.getPermission_id()) > 1) {
@@ -74,11 +74,15 @@ public class RolesServiceImpl extends ServiceImpl<RoleMapper, Role> implements R
                 }
                 break;
             case UPDATE:
-                //角色是否存在
-                if (generalTools.duplicateRole(role.getId()) == 0) {
-                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_NOTNULL_ERR_MSG);
+                //角色不存在
+                Role roleInfo = mapperMenu.getRoleMapper().selectById(role.getId());
+                if (roleInfo.getName() == null) {
+                    throw new BusinessException(Code.SAVE_ERR, Message.ROLE_ERR_MSG);
                 }
-                if (generalTools.updateRole(role) > 0) {
+                //需要修改的内容
+                roleInfo.setPermission_id(role.getPermission_id());
+                roleInfo.setName(role.getName());
+                if (generalTools.updateRole(roleInfo) > 0) {
                     result = true;
                 }
                 break;

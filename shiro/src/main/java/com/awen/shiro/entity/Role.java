@@ -2,6 +2,7 @@ package com.awen.shiro.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -29,6 +30,13 @@ public class Role {
      */
     @TableField(exist = false)
     private Long permission_id;
+
+    /**
+     * 乐观锁
+     */
+    @TableField(fill = FieldFill.INSERT)
+    @Version
+    private Integer version;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

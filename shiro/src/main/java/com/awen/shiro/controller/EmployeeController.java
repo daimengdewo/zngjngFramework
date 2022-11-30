@@ -99,8 +99,8 @@ public class EmployeeController {
     /**
      * 删除员工
      */
-    @PostMapping("/delete")
-    public Result deleteEmployee(@Validated @RequestBody Employee employee) {
+    @DeleteMapping("/delete")
+    public Result deleteEmployee(@RequestBody Employee employee) {
         Boolean flag = employeeService.employeeUtil(employee, FunctionMenu.DELETE);
         return new Result(flag ? Code.DELETE_OK : Code.DELETE_ERR, null);
     }
@@ -108,8 +108,8 @@ public class EmployeeController {
     /**
      * 修改员工
      */
-    @PostMapping("/update")
-    public Result updateEmployee(@Validated @RequestBody Employee employee) {
+    @PutMapping("/update")
+    public Result updateEmployee(@RequestBody Employee employee) {
         Boolean flag = employeeService.employeeUtil(employee, FunctionMenu.UPDATE);
         return new Result(flag ? Code.UPDATE_OK : Code.UPDATE_ERR, null);
     }

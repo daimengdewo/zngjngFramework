@@ -74,7 +74,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
                 break;
             case DELETE:
                 //用户是否存在
-                if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) == 0) {
+                if (generalTools.duplicateEmployee(employee.getId()) == 0) {
                     //提示不存在该用户
                     throw new BusinessException(Code.DELETE_ERR, Message.EMPLOYEE_ERR_MSG);
                 }
@@ -85,11 +85,24 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
                 break;
             case UPDATE:
                 //用户是否存在
-                if (generalTools.duplicateEmployee(employee.getUsername(), employee.getPhone()) == 0) {
+                Employee employeeInfo = mapperMenu.getEmployeeMapper().selectById(employee.getId());
+                if (employeeInfo.getUsername() == null) {
                     //提示不存在该用户
                     throw new BusinessException(Code.UPDATE_ERR, Message.EMPLOYEE_ERR_MSG);
                 }
-                if (generalTools.updateEmployee(employee) > 0) {
+                //需要修改的内容
+                employeeInfo.setName(employee.getName());
+                //密码进行md5加盐处理
+                String newPass = SecureUtil.md5(employee.getPassword() + salt);
+                employeeInfo.setPassword(newPass);
+                employeeInfo.setIdNumber(employee.getIdNumber());
+                //查重
+                if (employee.getPhone() != null && generalTools.duplicateEmployee(employee.getPhone()) == 0) {
+                    employeeInfo.setPhone(employee.getPhone());
+                } else {
+                    throw new BusinessException(Code.UPDATE_ERR, Message.EMPLOYEE_PHONE_NOTNULL_ERR_MSG);
+                }
+                if (generalTools.updateEmployee(employeeInfo) > 0) {
                     result = true;
                 }
                 break;

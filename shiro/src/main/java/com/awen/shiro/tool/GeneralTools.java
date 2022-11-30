@@ -15,7 +15,6 @@ public class GeneralTools {
 
     //查询角色是否重复
     public Integer duplicateRole(String name) {
-        //去重条件
         LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Role::getName, name);
         return mapperMenu.getRoleMapper().selectCount(wrapper);
@@ -23,7 +22,6 @@ public class GeneralTools {
 
     //查询角色是否存在
     public Integer duplicateRole(Long role_id) {
-        //去重条件
         LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Role::getId, role_id);
         return mapperMenu.getRoleMapper().selectCount(wrapper);
@@ -68,7 +66,6 @@ public class GeneralTools {
 
     //查询权限是否存在
     public Integer duplicatePermission(Long permission_id) {
-        //去重条件
         LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Permission::getId, permission_id);
         return mapperMenu.getPermissionMapper().selectCount(wrapper);
@@ -76,7 +73,6 @@ public class GeneralTools {
 
     //查询权限是否重复
     public Integer duplicatePermission(String info) {
-        //去重条件
         LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Permission::getInfo, info);
         return mapperMenu.getPermissionMapper().selectCount(wrapper);
@@ -84,7 +80,6 @@ public class GeneralTools {
 
     //删除权限
     public Integer deletePermission(Long permission_id) {
-        //去重条件
         LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Permission::getId, permission_id);
         return mapperMenu.getPermissionMapper().delete(wrapper);
@@ -92,7 +87,6 @@ public class GeneralTools {
 
     //更新权限
     public Integer updatePermission(Permission permission) {
-        //去重条件
         LambdaQueryWrapper<Permission> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Permission::getId, permission.getId());
         return mapperMenu.getPermissionMapper().update(permission, wrapper);
@@ -100,16 +94,28 @@ public class GeneralTools {
 
     //查询重复账户
     public Integer duplicateEmployee(String username, String phone) {
-        //去重条件
         LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Employee::getUsername, username)
                 .or().eq(Employee::getPhone, phone);
         return mapperMenu.getEmployeeMapper().selectCount(wrapper);
     }
 
+    //查询重复账户
+    public Integer duplicateEmployee(Long emp_id) {
+        LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Employee::getId, emp_id);
+        return mapperMenu.getEmployeeMapper().selectCount(wrapper);
+    }
+
+    //查询重复账户
+    public Integer duplicateEmployee(String phone) {
+        LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Employee::getPhone, phone);
+        return mapperMenu.getEmployeeMapper().selectCount(wrapper);
+    }
+
     //删除账户
     public Integer deleteEmployee(Long emp_id) {
-        //去重条件
         LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Employee::getId, emp_id);
         return mapperMenu.getEmployeeMapper().delete(wrapper);
@@ -117,7 +123,6 @@ public class GeneralTools {
 
     //更新账户
     public Integer updateEmployee(Employee employee) {
-        //去重条件
         LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Employee::getId, employee.getId());
         return mapperMenu.getEmployeeMapper().update(employee, wrapper);

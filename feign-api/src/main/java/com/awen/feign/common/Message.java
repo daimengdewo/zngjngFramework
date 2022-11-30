@@ -13,8 +13,9 @@ public class Message {
     public static final String GET_ERR_MSG = "数据库查询失败！";
     public static final String DELETE_LAST_ROLE_ERR_MSG = "无法删除角色唯一权限！请尝试直接移除角色！";
     public static final String EMPLOYEE_ERR_MSG = "目标用户不存在！";
-    public static final String PERMISSION_ERR_MSG = "目标权限已存在！";
-    public static final String PERMISSION_NOTNULL_ERR_MSG = "目标权限不存在！";
-    public static final String ROLE_NOTNULL_ERR_MSG = "目标角色不存在！";
-    public static final String ROLE_ERR_MSG = "目标角色已存在！";
+    public static final String PERMISSION_ERR_MSG = "目标权限不存在！";
+    public static final String PERMISSION_NOTNULL_ERR_MSG = "目标权限已存在！";
+    public static final String ROLE_NOTNULL_ERR_MSG = "目标角色已存在！";
+    public static final String ROLE_ERR_MSG = "目标角色不存在！";
+    public static final String EMPLOYEE_PHONE_NOTNULL_ERR_MSG = "该手机号已被使用！";
 }
