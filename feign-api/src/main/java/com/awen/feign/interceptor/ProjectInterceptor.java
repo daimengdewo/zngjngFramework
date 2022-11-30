@@ -1,8 +1,8 @@
 package com.awen.feign.interceptor;
 
+import com.awen.feign.clients.ShiroClient;
 import com.awen.feign.entity.Shiro;
 import com.awen.feign.tool.ShiroCheck;
-import com.awen.feign.tool.ShiroTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 public class ProjectInterceptor implements HandlerInterceptor {
 
     @Autowired
-    private ShiroTool shiroTool;
+    private ShiroClient shiroClient;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -30,15 +30,15 @@ public class ProjectInterceptor implements HandlerInterceptor {
                 //获取token
                 String token = request.getHeader("Authorization").replace("Bearer ", "");
                 //远程调用安全模块 做token合法性验证和权限校验
-                Shiro result = shiroTool.check(token, shiroCheck.roles());//注解保存的接口权限要求，类似shiro的@RequiresRoles
+                Shiro result = shiroClient.check(token, shiroCheck.roles());//注解保存的接口权限要求，类似shiro的@RequiresRoles
                 //如果失败，重定向到token校验异常返回
                 if (!result.getIsCheck()) {
-                    request.getRequestDispatcher("/user/tokenError").forward(request, response);
+                    request.getRequestDispatcher("/global/tokenError").forward(request, response);
                     return result.getIsCheck();
                 }
                 //如果没有权限，重定向到权限校验异常返回
                 if (!result.getIsRoleCheck()) {
-                    request.getRequestDispatcher("/user/rolesError").forward(request, response);
+                    request.getRequestDispatcher("/global/rolesError").forward(request, response);
                     return result.getIsRoleCheck();
                 }
             }

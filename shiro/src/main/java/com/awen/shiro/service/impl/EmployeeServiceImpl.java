@@ -151,8 +151,10 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
             jwtUser.setUid(employee.getId());
             //查询账户角色
             List<String> roles = mapperMenu.getEmployeeMapper().getUserRoleInfoMapper(employee.getUsername());
+            System.out.println(roles);
             //查询角色权限
             List<String> permission = mapperMenu.getEmployeeMapper().getUserPermissionInfoMapper(roles);
+            System.out.println(permission);
             //存入权限信息
             jwtUser.setRoles(permission);
             //返回jwtUser对象

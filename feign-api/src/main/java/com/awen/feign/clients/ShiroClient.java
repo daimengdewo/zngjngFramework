@@ -9,4 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface ShiroClient {
     @GetMapping("/employee/check/{token}/{roles}")
     Shiro check(@PathVariable("token") String token, @PathVariable("roles") String roles);
+
+    @GetMapping("/employee/tokenError")
+    void tokenError();
+
+    @GetMapping("/employee/rolesError")
+    void rolesError();
 }

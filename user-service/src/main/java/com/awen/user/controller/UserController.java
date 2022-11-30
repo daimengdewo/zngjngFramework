@@ -1,8 +1,5 @@
 package com.awen.user.controller;
 
-import com.awen.feign.common.Code;
-import com.awen.feign.common.Message;
-import com.awen.feign.common.Result;
 import com.awen.feign.tool.ShiroCheck;
 import com.awen.user.entity.User;
 import com.awen.user.service.UserService;
@@ -25,15 +22,5 @@ public class UserController {
     @ShiroCheck(roles = "test")
     public User queryById(@PathVariable("id") Long id) {
         return userService.queryById(id);
-    }
-
-    @GetMapping("/tokenError")
-    public Result tokenError() {
-        return new Result(Code.TOKEN_ERR, Message.TOKEN_ERR_MSG);
-    }
-
-    @GetMapping("/rolesError")
-    public Result permissionError() {
-        return new Result(Code.GET_AUTHORIZED_ERR, Message.AUTHORIZED_ERR_MSG);
     }
 }

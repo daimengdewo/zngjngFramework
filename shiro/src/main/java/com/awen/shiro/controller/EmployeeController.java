@@ -74,7 +74,7 @@ public class EmployeeController {
      * 手机登录
      */
     @PostMapping("/phone/login")
-    public Result test(@RequestBody Employee employee) throws ExecutionException, InterruptedException {
+    public Result test(@RequestBody Employee employee) {
         //构造wrapper对象
         LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
         //创建wrapper对象
