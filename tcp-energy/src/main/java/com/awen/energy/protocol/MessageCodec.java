@@ -2,7 +2,7 @@ package com.awen.energy.protocol;
 
 import cn.hutool.core.text.StrSplitter;
 import com.awen.energy.protocol.message.DeviceMessage;
-import com.awen.energy.tool.NumTools;
+import com.awen.energy.tool.DeviceTools;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandler;
@@ -11,6 +11,7 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -33,9 +34,19 @@ public class MessageCodec extends MessageToMessageCodec<ByteBuf, DeviceMessage> 
         String msg = ByteBufUtil.hexDump(byteBuf);
         //分割处理
         String[] msgList = StrSplitter.splitByLength(msg, 2);
-        //报文数据提取
-        NumTools.reverse(msgList);
-        
+        if (DeviceTools.check(msgList)) {
+            //报文设备id提取
+            String deviceId = DeviceTools.reverseDeviceId(msgList);
+            //报文标识提取
+            String deviceDataName = DeviceTools.reverseDeviceDataName(msgList);
+            //报文数据提取
+            String deviceData = DeviceTools.reverseDeviceData(msgList);
+
+            System.out.println(Arrays.toString(msgList));
+            System.out.println(deviceId);
+            System.out.println(deviceDataName);
+            System.out.println(deviceData);
+        }
         byteBuf.skipBytes(byteBuf.readableBytes());
         byteBuf.retain();
     }
