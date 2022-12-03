@@ -8,11 +8,13 @@
     <artifactId>cloud-demo</artifactId>
     <version>1.0</version>
     <modules>
-        <module>user-service</module>
+        <module>guest-service</module>
         <module>order-service</module>
         <module>feign-api</module>
         <module>gateway</module>
         <module>shiro</module>
+        <module>tcp-energy</module>
+        <module>device-service</module>
     </modules>
 
     <packaging>pom</packaging>

@@ -29,8 +29,11 @@ mybatis-plus:
     db-config:
       id-type: ASSIGN_ID
 
-shiro:
-  loginUrl: /employee/login
+logging:
+  level:
+    com.awen: debug
+  pattern:
+    dateformat: MM-dd HH:mm:ss:SSS
 
 jwtProperties:
   SecretKey: zngjngsoft2022

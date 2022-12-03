@@ -9,7 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>order-service</artifactId>
+    <artifactId>guest-service</artifactId>
+    <version>1.0</version>
 
     <dependencies>
         <dependency>
@@ -19,6 +20,11 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <!--amqp依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
         <!--mp依赖-->
         <dependency>
@@ -46,15 +52,17 @@
             <artifactId>feign-api</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
     </dependencies>
-
     <build>
         <finalName>app</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.3.9.RELEASE</version>
             </plugin>
         </plugins>
     </build>

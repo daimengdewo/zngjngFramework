@@ -1,0 +1,32 @@
+server:
+  port: 8085
+energy:
+  port: 18085
+spring:
+  #  数据源配置
+  datasource:
+    druid:
+      url: jdbc:mysql://192.168.31.201:3306/electric?useSSL=false
+      username: root
+      password: LDaf-2022
+      driver-class-name: com.mysql.cj.jdbc.Driver
+  rabbitmq:
+    host: 192.168.31.201
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+
+logging:
+  level:
+    com.awen: debug
+  pattern:
+    dateformat: MM-dd HH:mm:ss:SSS
