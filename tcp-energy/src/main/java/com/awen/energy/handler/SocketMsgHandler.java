@@ -1,13 +1,12 @@
 package com.awen.energy.handler;
 
-import com.awen.energy.service.ChannelGroupService;
+import com.awen.energy.protocol.message.DeviceMessage;
+import com.awen.energy.tool.DeviceTools;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,11 +17,7 @@ import org.springframework.stereotype.Component;
 public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
 
     @Autowired
-    private ChannelGroupService channelGroupService;
-
-    //定义一个Channel 组，管理所有的channel
-    //GlobalEventExecutor.INSTANCE) 是全局的事件执行器，是一个单例
-    public static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    private DeviceTools deviceTools;
 
     /**
      * 有客户端与服务器发生连接时执行此方法
@@ -33,10 +28,8 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
         System.err.println("有新的客户端与服务器发生连接。客户端地址：" + channel.remoteAddress());
-        channelGroup.add(channel);
-//        ChannelData channelData = new ChannelData();
-//        channelData.setChannel(channel.remoteAddress().toString());
-//        channelGroupService.channelGroupUtil(channelData, FunctionMenu.ADD);
+        //保存channel
+        DeviceMessage.getChannelGroup().add(channel);
     }
 
     /**
@@ -47,22 +40,8 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
         System.err.println("有客户端与服务器断开连接。客户端地址：" + channel.remoteAddress());
-    }
-
-    /**
-     * 表示channel 处于活动状态
-     */
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println(ctx.channel().remoteAddress() + " 处于活动状态");
-    }
-
-    /**
-     * 表示channel 处于不活动状态
-     */
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println(ctx.channel().remoteAddress() + " 处于不活动状态");
+        DeviceMessage.getChannelGroup().remove(ctx.channel());
+        removeUserId(ctx);
     }
 
     /**
@@ -77,8 +56,17 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        ByteBuf buffer = ctx.alloc().buffer();
-        System.out.println();
+        String[] msgList = (String[]) msg;
+        //报文设备id提取
+        String deviceId = deviceTools.reverseDeviceId(msgList);
+        DeviceMessage.getChannelMap().put(deviceId, ctx.channel());
+
+        // 将用户ID作为自定义属性加入到channel中，方便随时channel中获取用户ID
+        AttributeKey<String> key = AttributeKey.valueOf("deviceId");
+        ctx.channel().attr(key).setIfAbsent(deviceId);
+
+        // 回复消息
+        ctx.channel().writeAndFlush(new byte[]{0x72, 0x67, 0x08, 0x01, 0x07, 0x31});
     }
 
     /**
@@ -87,7 +75,15 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("发生异常。异常信息：{}", cause.getMessage());
-        //关闭通道
+        // 删除通道
+        DeviceMessage.getChannelGroup().remove(ctx.channel());
+        removeUserId(ctx);
         ctx.close();
+    }
+
+    private void removeUserId(ChannelHandlerContext ctx) {
+        AttributeKey<String> key = AttributeKey.valueOf("deviceId");
+        String deviceId = ctx.channel().attr(key).get();
+        DeviceMessage.getChannelMap().remove(deviceId);
     }
 }

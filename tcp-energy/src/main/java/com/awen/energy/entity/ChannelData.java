@@ -15,9 +15,26 @@ public class ChannelData {
 
     private Long id;
 
-    private String channel;
+    /**
+     * ip地址
+     */
+    @TableField(exist = false)
+    private String address;
 
+    /**
+     * 设备id
+     */
     private String deviceid;
+
+    /**
+     * 电流
+     */
+    private String current;
+
+    /**
+     * 电压
+     */
+    private String voltage;
 
     /**
      * 乐观锁

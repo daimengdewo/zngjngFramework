@@ -1,10 +1,20 @@
 package com.awen.energy.tool;
 
+import com.awen.energy.entity.ChannelData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 
+@Component
 public class DeviceTools {
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
     //报文表号
-    public static String reverseDeviceId(String[] msgList) {
+    public String reverseDeviceId(String[] msgList) {
         //取出表号
         ArrayList<String> deviceId = new ArrayList<>();
         //翻转
@@ -15,7 +25,7 @@ public class DeviceTools {
     }
 
     //报文标识
-    public static String reverseDeviceDataName(String[] msgList) {
+    public String reverseDeviceDataName(String[] msgList) {
         //取出数据
         ArrayList<String> deviceDataName = new ArrayList<>();
         //翻转
@@ -26,7 +36,7 @@ public class DeviceTools {
     }
 
     //报文正文
-    public static String reverseDeviceData(String[] msgList) {
+    public String reverseDeviceData(String[] msgList) {
         //取出数据
         ArrayList<String> deviceData = new ArrayList<>();
         int data_length = Integer.parseInt(msgList[9]) - 4;
@@ -38,7 +48,7 @@ public class DeviceTools {
     }
 
     //检查数据完整性
-    public static boolean check(String[] msgList) {
+    public boolean check(String[] msgList) {
         long num = 0L;
         for (int i = 0; i < msgList.length - 2; i++) {
             num = num + Long.parseLong(msgList[i], 16);
@@ -47,5 +57,31 @@ public class DeviceTools {
         String tag1 = Long.toHexString(num);
         String tag2 = Long.toHexString(num2);
         return tag1.substring(tag1.length() - 2).equals(tag2);
+    }
+
+    //缓存到redis
+    public void saveChannelData(ChannelData channelData) {
+        //判断该表号是否存在于缓存中
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(channelData.getDeviceid()))) {
+            //有则更新
+            redisTemplate.delete(channelData.getDeviceid());
+            redisTemplate.opsForValue().set(channelData.getDeviceid(), channelData.getAddress());
+        } else {
+            //无则新增
+            redisTemplate.opsForValue().set(channelData.getDeviceid(), channelData.getAddress());
+        }
+    }
+
+    //保存到mysql
+    public void saveDeviceData(ChannelData channelData) {
+        //判断该表号是否存在于缓存中
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(channelData.getDeviceid()))) {
+            //有则更新
+            redisTemplate.delete(channelData.getDeviceid());
+            redisTemplate.opsForValue().set(channelData.getDeviceid(), channelData.getAddress());
+        } else {
+            //无则新增
+            redisTemplate.opsForValue().set(channelData.getDeviceid(), channelData.getAddress());
+        }
     }
 }

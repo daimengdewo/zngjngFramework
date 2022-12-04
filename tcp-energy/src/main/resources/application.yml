@@ -10,12 +10,10 @@ spring:
       username: root
       password: LDaf-2022
       driver-class-name: com.mysql.cj.jdbc.Driver
-  rabbitmq:
-    host: 192.168.31.201
-    port: 5672
-    username: admin
-    password: admin
-    virtual-host: /
+  redis:
+    cluster:
+      nodes: 192.168.31.201:6379,192.168.31.202:6379,192.168.31.203:6379
+    database: 0
 
 mybatis-plus:
   configuration:
