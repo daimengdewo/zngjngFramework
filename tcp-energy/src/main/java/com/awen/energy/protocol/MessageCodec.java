@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,16 +36,14 @@ public class MessageCodec extends MessageToMessageCodec<ByteBuf, DeviceMessage> 
         String msg = ByteBufUtil.hexDump(byteBuf);
         //分割处理
         String[] msgList = StrSplitter.splitByLength(msg, 2);
-        if (msgList != null) {
-            ArrayList<String> newMsgList = new ArrayList<>();
-            for (String s : msgList) {
-                if (!Objects.equals(s, "FE")) {
-                    newMsgList.add(s);
-                }
+        //去除FE
+        ArrayList<String> newMsgList = new ArrayList<>();
+        for (String s : msgList) {
+            if (!Objects.equals(s, "fe")) {
+                newMsgList.add(s);
             }
-            Object[] objects = newMsgList.toArray();
-            System.out.println(Arrays.toString(objects));
-            list.add(objects);
         }
+        //传递给下一个处理器
+        list.add(newMsgList);
     }
 }

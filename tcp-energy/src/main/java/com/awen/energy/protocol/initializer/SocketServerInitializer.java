@@ -25,8 +25,8 @@ public class SocketServerInitializer extends ChannelInitializer<SocketChannel> {
         //添加对于读写大数据流的支持
         pipeline.addLast(new ChunkedWriteHandler());
         pipeline.addLast(new ByteArrayEncoder());
-        pipeline.addLast(new LengthFieldBasedFrameDecoder(64, 9, 1, 2, 0));
         pipeline.addLast(messageCodec);
+        pipeline.addLast(new LengthFieldBasedFrameDecoder(64, 9, 1, 0, 0));
         pipeline.addLast(socketMsgHandler);
     }
 }

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 @Slf4j
@@ -59,7 +60,13 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        String[] msgList = (String[]) msg;
+        ArrayList<String> msgList = (ArrayList<String>) msg;
+
+        //数据完整性校验
+        if (!deviceTools.check(msgList)) {
+            throw new Exception("数据完整性校验失败");
+        }
+
         //报文设备id提取
         String deviceId = deviceTools.reverseDeviceId(msgList);
         DeviceMessage.getChannelMap().put(deviceId, ctx.channel());
@@ -69,18 +76,21 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
         ctx.channel().attr(key).setIfAbsent(deviceId);
 
         String dataName = deviceTools.reverseDeviceDataName(msgList);
-        String data = deviceTools.reverseDeviceData(msgList);
+        Double data = deviceTools.reverseDeviceData(msgList);
 
         //判断上报的数据
         StatusType type = StatusType.getByType(dataName, StatusType.class);
         switch (Objects.requireNonNull(type)) {
             //单相电流
             case ONE_PHASE_CURRENT:
-                System.out.println("单相电流：" + data);
+                System.out.println("单相电流：" + data / 1000);
                 break;
             //三相电流
             case THREE_PHASE_CURRENT:
                 System.out.println("三相电流：" + data);
+                break;
+            case VOLTAGE:
+                System.out.println("电压：" + data / 10);
                 break;
         }
     }
