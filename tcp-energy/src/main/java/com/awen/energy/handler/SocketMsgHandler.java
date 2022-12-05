@@ -1,5 +1,6 @@
 package com.awen.energy.handler;
 
+import com.awen.energy.protocol.StatusType;
 import com.awen.energy.protocol.message.DeviceMessage;
 import com.awen.energy.tool.DeviceTools;
 import io.netty.channel.Channel;
@@ -10,6 +11,8 @@ import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -41,7 +44,7 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
         Channel channel = ctx.channel();
         System.err.println("有客户端与服务器断开连接。客户端地址：" + channel.remoteAddress());
         DeviceMessage.getChannelGroup().remove(ctx.channel());
-        removeUserId(ctx);
+        removeDeviceId(ctx);
     }
 
     /**
@@ -65,8 +68,21 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
         AttributeKey<String> key = AttributeKey.valueOf("deviceId");
         ctx.channel().attr(key).setIfAbsent(deviceId);
 
-        // 回复消息
-        ctx.channel().writeAndFlush(new byte[]{0x72, 0x67, 0x08, 0x01, 0x07, 0x31});
+        String dataName = deviceTools.reverseDeviceDataName(msgList);
+        String data = deviceTools.reverseDeviceData(msgList);
+
+        //判断上报的数据
+        StatusType type = StatusType.getByType(dataName, StatusType.class);
+        switch (Objects.requireNonNull(type)) {
+            //单相电流
+            case ONE_PHASE_CURRENT:
+                System.out.println("单相电流：" + data);
+                break;
+            //三相电流
+            case THREE_PHASE_CURRENT:
+                System.out.println("三相电流：" + data);
+                break;
+        }
     }
 
     /**
@@ -77,11 +93,11 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
         log.error("发生异常。异常信息：{}", cause.getMessage());
         // 删除通道
         DeviceMessage.getChannelGroup().remove(ctx.channel());
-        removeUserId(ctx);
+        removeDeviceId(ctx);
         ctx.close();
     }
 
-    private void removeUserId(ChannelHandlerContext ctx) {
+    private void removeDeviceId(ChannelHandlerContext ctx) {
         AttributeKey<String> key = AttributeKey.valueOf("deviceId");
         String deviceId = ctx.channel().attr(key).get();
         DeviceMessage.getChannelMap().remove(deviceId);

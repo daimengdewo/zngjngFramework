@@ -30,7 +30,7 @@ public class DeviceTools {
         ArrayList<String> deviceDataName = new ArrayList<>();
         //翻转
         for (int i = 0; i < 4; i++) {
-            deviceDataName.add(0, String.format("%x", Long.parseLong(msgList[10 + i], 16)));
+            deviceDataName.add(String.format("%x", Long.parseLong(msgList[10 + i], 16)));
         }
         return String.join("", deviceDataName);
     }

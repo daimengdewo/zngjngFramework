@@ -5,7 +5,6 @@ import com.awen.energy.protocol.message.DeviceMessage;
 import com.awen.feign.common.Code;
 import com.awen.feign.common.Result;
 import io.netty.channel.Channel;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,8 +28,7 @@ public class TcpEnergyController {
         if (Objects.isNull(channel)) {
             throw new RuntimeException("未连接socket服务器");
         }
-
-        channel.writeAndFlush(new TextWebSocketFrame(channelData.getAddress()));
+        channel.writeAndFlush(new byte[]{0x68, 0x72, 0x67, 0x08, 0x01, 0x07, 0x31, 0x68, 0x11, 0x04, 0x33, 0x34, 0x35, 0x35, (byte) 0xd0, 0x16});
         return new Result(Code.GET_OK, null);
     }
 }
