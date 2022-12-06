@@ -15,7 +15,7 @@ public class TcpServer {
                 new MessageCodec());
 
         DeviceMessage message = new DeviceMessage();
-        message.setDeviceid(new byte[]{0x31, 0x07, 0x01, 0x08, 0x67, 0x72});
+        message.setDeviceId(new byte[]{0x31, 0x07, 0x01, 0x08, 0x67, 0x72});
 
         ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer();
 

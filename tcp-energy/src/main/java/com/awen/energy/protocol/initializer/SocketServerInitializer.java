@@ -1,7 +1,7 @@
 package com.awen.energy.protocol.initializer;
 
-import com.awen.energy.handler.SocketMsgHandler;
 import com.awen.energy.protocol.MessageCodec;
+import com.awen.energy.protocol.message.SocketMsgHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;

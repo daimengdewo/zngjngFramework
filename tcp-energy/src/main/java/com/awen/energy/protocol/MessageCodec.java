@@ -22,11 +22,11 @@ public class MessageCodec extends MessageToMessageCodec<ByteBuf, DeviceMessage> 
     @Override
     protected void encode(ChannelHandlerContext ctx, DeviceMessage message, List<Object> list) throws Exception {
         ByteBuf byteBuf = ctx.alloc().buffer();
-        System.out.println(byteBuf);
         byteBuf.writeByte(0x68);
-        byteBuf.writeBytes(message.getDeviceid());
+        byteBuf.writeBytes(message.getDeviceId());
         byteBuf.writeByte(0x68);
-        System.out.println(byteBuf);
+        byteBuf.writeBytes(message.getDeviceData());
+        byteBuf.writeBytes(message.getLast());
         list.add(byteBuf);
     }
 

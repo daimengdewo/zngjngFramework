@@ -11,7 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 public class DeviceMessage implements Serializable {
-    private byte[] deviceid;
+    private byte[] deviceId;
+    private byte[] deviceData;
+    private byte[] last;
 
     /**
      * 定义全局单利channel组 管理所有channel

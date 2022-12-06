@@ -1,7 +1,6 @@
-package com.awen.energy.handler;
+package com.awen.energy.protocol.message;
 
 import com.awen.energy.protocol.StatusType;
-import com.awen.energy.protocol.message.DeviceMessage;
 import com.awen.energy.tool.DeviceTools;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
