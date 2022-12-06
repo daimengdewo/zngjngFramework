@@ -63,6 +63,9 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
 
         //数据完整性校验
         if (!deviceTools.check(msgList)) {
+            DeviceMessage.getChannelGroup().remove(ctx.channel());
+            removeDeviceId(ctx);
+            ctx.close();
             throw new Exception("数据完整性校验失败");
         }
 

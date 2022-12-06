@@ -2,12 +2,12 @@ package com.awen.energy.tool;
 
 import cn.hutool.core.text.StrSplitter;
 import com.awen.energy.entity.ChannelData;
+import com.google.common.primitives.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @Component
 public class DeviceTools {
@@ -23,22 +23,34 @@ public class DeviceTools {
         for (int i = 1; i < 7; i++) {
             deviceId.add(0, msgList.get(i));
         }
+        //转字符串
         return String.join("", deviceId);
     }
 
-    public byte[] reverseDeviceId(String id) {
+    public byte[] encodeCommand(String id, String data) {
         //分割处理
-        String[] msgList = StrSplitter.splitByLength(id, 2);
-        //取出表号
-        ArrayList<String> deviceId = new ArrayList<>();
-        byte[] bytes = Arrays.toString(deviceId.toArray()).getBytes();
-        //翻转
-        for (int i = 0; i < msgList.length; i++) {
-            deviceId.add(0, msgList[i]);
+        String[] deviceId = StrSplitter.splitByLength("68" + id + "68", 2);
+        String[] device_data = StrSplitter.splitByLength(data, 2);
+        String[] device = StrSplitter.splitByLength("68" + id + "68" + data, 2);
+        //byte数组
+        ArrayList<Byte> bytes = new ArrayList<>();
+        //遍历
+        for (String s : deviceId) {
+            bytes.add(0, (byte) Long.parseLong(s, 16));
         }
-        System.out.println("表号：" + deviceId);
-        System.out.println("byte表号：" + Arrays.toString(bytes));
-        return bytes;
+        for (String s : device_data) {
+            bytes.add((byte) Long.parseLong(s, 16));
+        }
+        long num = 0L;
+        for (String s : device) {
+            num = num + Long.parseLong(s, 16);
+        }
+        String tag = Long.toHexString(num);
+        //校验位
+        bytes.add((byte) Long.parseLong(tag.substring(tag.length() - 2), 16));
+        //固定16结束
+        bytes.add((byte) Long.parseLong("16", 16));
+        return Bytes.toArray(bytes);
     }
 
     //报文标识
@@ -49,17 +61,8 @@ public class DeviceTools {
         for (int i = 0; i < 4; i++) {
             deviceDataName.add(String.format("%x", Long.parseLong(msgList.get(10 + i), 16)));
         }
+        //转字符串
         return String.join("", deviceDataName);
-    }
-
-    public byte[] reverseDeviceDataName(String data) {
-        //分割处理
-        String[] msgList = StrSplitter.splitByLength(data, 2);
-        ArrayList<String> deviceDataName = new ArrayList<>(Arrays.asList(msgList));
-        byte[] bytes = Arrays.toString(deviceDataName.toArray()).getBytes();
-        System.out.println("数据标识：" + deviceDataName);
-        System.out.println("bytes数据：" + Arrays.toString(bytes));
-        return bytes;
     }
 
     //报文正文
@@ -90,16 +93,6 @@ public class DeviceTools {
         String tag1 = Long.toHexString(num);
         String tag2 = Long.toHexString(num2);
         return tag1.substring(tag1.length() - 2).equals(tag2);
-    }
-
-    public byte[] check(String deviceId, String deviceData) {
-        String[] msgList = StrSplitter.splitByLength("68" + deviceId + "68" + deviceData, 2);
-        long num = 0L;
-        for (int i = 0; i < msgList.length - 2; i++) {
-            num = num + Long.parseLong(msgList[i], 16);
-        }
-        String tag = Long.toHexString(num);
-        return new byte[]{Byte.parseByte(tag.substring(tag.length() - 2)), 0x16};
     }
 
     //缓存到redis
