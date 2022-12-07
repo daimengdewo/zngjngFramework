@@ -1,7 +1,9 @@
 package com.awen.energy.protocol.message;
 
+import com.awen.energy.exception.BusinessException;
 import com.awen.energy.protocol.StatusType;
 import com.awen.energy.tool.DeviceTools;
+import com.awen.feign.common.Code;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -66,7 +68,7 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
             DeviceMessage.getChannelGroup().remove(ctx.channel());
             removeDeviceId(ctx);
             ctx.close();
-            throw new Exception("数据完整性校验失败");
+            throw new BusinessException(Code.COMMON_ERR, "数据完整性校验失败！");
         }
 
         //报文设备id提取
@@ -94,21 +96,23 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
             case VOLTAGE:
                 System.out.println("电压：" + data / 10);
                 break;
+            case VALVE:
+                System.out.println("闸门操作成功！");
+                break;
         }
     }
 
     /**
      * 处理异常
      */
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("发生异常。异常信息：{}", cause.getMessage());
-        // 删除通道
-        DeviceMessage.getChannelGroup().remove(ctx.channel());
-        removeDeviceId(ctx);
-        ctx.close();
-    }
-
+//    @Override
+//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+//        log.error("发生异常。异常信息：{}", cause.getMessage());
+//        // 删除通道
+//        DeviceMessage.getChannelGroup().remove(ctx.channel());
+//        removeDeviceId(ctx);
+//        ctx.close();
+//    }
     private void removeDeviceId(ChannelHandlerContext ctx) {
         AttributeKey<String> key = AttributeKey.valueOf("deviceId");
         String deviceId = ctx.channel().attr(key).get();

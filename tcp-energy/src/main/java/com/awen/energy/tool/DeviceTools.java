@@ -57,9 +57,16 @@ public class DeviceTools {
     public String reverseDeviceDataName(ArrayList<String> msgList) {
         //取出数据
         ArrayList<String> deviceDataName = new ArrayList<>();
-        //翻转
-        for (int i = 0; i < 4; i++) {
-            deviceDataName.add(String.format("%x", Long.parseLong(msgList.get(10 + i), 16)));
+        //读取长度
+        long data_length = Long.parseLong(msgList.get(9), 16);
+        //判断类型
+        if (data_length < 4) {
+            deviceDataName.add(String.format("%x", Long.parseLong(msgList.get(10), 16)));
+        } else {
+            //翻转
+            for (int i = 0; i < 4; i++) {
+                deviceDataName.add(String.format("%x", Long.parseLong(msgList.get(10 + i), 16)));
+            }
         }
         //转字符串
         return String.join("", deviceDataName);
@@ -69,7 +76,7 @@ public class DeviceTools {
     public Double reverseDeviceData(ArrayList<String> msgList) {
         //取出数据
         ArrayList<String> deviceData = new ArrayList<>();
-        int data_length = Integer.parseInt(msgList.get(9)) - 4;
+        long data_length = Long.parseLong(msgList.get(9), 16) - 4;
         //翻转
         for (int i = 0; i < data_length; i++) {
             deviceData.add(0, String.format("%x", Long.parseLong(msgList.get(14 + i)) - 33));
