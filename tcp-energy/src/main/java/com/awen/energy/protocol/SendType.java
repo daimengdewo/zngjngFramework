@@ -5,9 +5,17 @@ import lombok.Getter;
 @Getter
 public enum SendType {
 
-    //操作标识
-    ONE_PHASE_CURRENT("110433343535"), THREE_PHASE_CURRENT("110433323535"),
-    VOLTAGE("110433343435"), VALVE_UP("1c1035333333348967454d3347773b3a443c"),
+    //单相电流
+    ONE_PHASE_CURRENT("110433343535"),
+    //三相电流
+    THREE_PHASE_CURRENT("110433323535"),
+    //电压
+    VOLTAGE("110433343435"),
+    //功率
+    POWER("1104333436351d16"),
+    //开闸
+    VALVE_UP("1c1035333333348967454d3347773b3a443c"),
+    //合闸
     VALVE_DOWN("1c1035333333348967454e3347773b3a443c");
 
     private final String type;

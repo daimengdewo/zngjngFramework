@@ -105,17 +105,21 @@ public class SocketMsgHandler extends SimpleChannelInboundHandler<String> {
     /**
      * 处理异常
      */
-//    @Override
-//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-//        log.error("发生异常。异常信息：{}", cause.getMessage());
-//        // 删除通道
-//        DeviceMessage.getChannelGroup().remove(ctx.channel());
-//        removeDeviceId(ctx);
-//        ctx.close();
-//    }
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("发生异常。异常信息：{}", cause.getMessage());
+        // 删除通道
+        DeviceMessage.getChannelGroup().remove(ctx.channel());
+        removeDeviceId(ctx);
+        ctx.close();
+    }
+
+
     private void removeDeviceId(ChannelHandlerContext ctx) {
         AttributeKey<String> key = AttributeKey.valueOf("deviceId");
         String deviceId = ctx.channel().attr(key).get();
-        DeviceMessage.getChannelMap().remove(deviceId);
+        if (deviceId != null) {
+            DeviceMessage.getChannelMap().remove(deviceId);
+        }
     }
 }
