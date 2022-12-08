@@ -16,13 +16,15 @@
 
 - MybatisPlus增强
 
-- Redis做验证码缓存
+- Redis做缓存
 
 - Springcloud
 
 - Nacos 服务注册中心 实现负载均衡
 
 - SpringAMQP
+
+- netty 与硬件设备通信 保持tcp长连接
 
 如果对安全性有一定的需求，可以考虑以下思路：
 
