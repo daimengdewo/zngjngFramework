@@ -1,4 +1,4 @@
-# Java后端自用框架（Spring分布式架构）
+# Java自用后端方案（Spring分布式架构）
 
 #### 介绍
 
@@ -21,6 +21,8 @@
 - Springcloud
 
 - Nacos 服务注册中心 实现负载均衡
+
+- SpringAMQP
 
 如果对安全性有一定的需求，可以考虑以下思路：
 
